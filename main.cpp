@@ -26,14 +26,18 @@ int main(int argc, char const *argv[])
         return 1;
     }
     open(argv[1]);
-    printAllLines();
+    printLines(4194300,4);
     
     return 0;
 }
 
 void printLines(unsigned int start, unsigned int lines) {
     using namespace std;
-    for (unsigned int i = start; i < lines; i++) {
+    unsigned int end = start + lines;
+    if (end > dataChars.size()) {
+        end = dataChars.size();
+    }
+    for (unsigned int i = start; i < end; i++) {
         stringstream ss;
         unsigned char c = dataChars.at(i);
         ss << toHexString(i,8) << ": " << toHexString((unsigned int)c,2);
@@ -55,9 +59,8 @@ void open(const char* fileName) {
         unsigned char c;
         // Read data into char c
         // 1 element of 1 byte from file "f"
-        // Zero return means error, so break
         if(fread(&c, 1, 1, f) == 0) {
-            std::cout << "Error reading at line " << i << std::endl;
+            // Zero return means error, so break
             break;
         }
         dataChars.push_back(c);
