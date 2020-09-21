@@ -5,8 +5,8 @@
 #include <assert.h> // assert()
 #include <fstream> // Better file reading
 
-// ASM cheat sheet
-// https://github.com/oowekyala/arm-cheatsheet/blob/master/arm-cheatsheet.pdf
+// ASM cheat sheet: https://github.com/oowekyala/arm-cheatsheet/blob/master/arm-cheatsheet.pdf
+// Memory location cheat sheet: https://www.smwcentral.net/?p=viewthread&t=31813
 // String notes:
 // - 253/0xFD is a null terminator, it signals the end of the string
 // - 0xFE/254 is the start of a line. It can follow with two things:
@@ -31,6 +31,8 @@ void printLines(unsigned int start, unsigned int lines);
 void loadTable();
 std::string getCharacter(unsigned int x);
 std::string decodeTextAddrs(unsigned int start, unsigned int lines);
+std::vector<unsigned char> generateChars(std::string textString);
+unsigned char getTableValue(unsigned char c);
 
 struct ylevel {
     const unsigned int address;
@@ -51,8 +53,15 @@ int main(int argc, char const *argv[])
     loadTable();
     // This covers every single level name
     //cout << decodeTextAddrs(LEVEL_TEXT_START,2010) << endl;
-    printLines(LEVEL_TEXT_START,2050);
-    
+    //printLines(LEVEL_TEXT_START,2050);
+
+    auto v = generateChars("Welcome To\nYoshi's Island");
+    stringstream ss;
+    for (auto it = begin(v); it != end(v); ++it) {
+        cout << "0x" << hex << (unsigned int)(*it) << " ";
+    }
+    printLines(LEVEL_TEXT_START, 20);
+
     return 0;
 }
 
@@ -132,4 +141,34 @@ std::string getCharacter(unsigned int x) {
     stringstream ss;
     ss << lTable[x];
     return ss.str();
+}
+
+unsigned char getTableValue(unsigned char c) {
+    using namespace std;
+
+    for (unsigned int i = 0; i < CHAR_MAX; i++) {
+        unsigned char curChar = lTable[i];
+        if (c == curChar) {
+            return i;
+        }
+    }
+    return 0;
+}
+
+std::vector<unsigned char> generateChars(std::string textString) {
+    using namespace std;
+    vector<unsigned char> v = {0xFE, 0x0, 0x0};
+    const char* cstr = textString.c_str();
+    for (unsigned int i = 0; i < textString.size(); i++) {
+        char curStringChar = cstr[i];
+        if (curStringChar == '\n') {
+            v.push_back(0xFE);
+            v.push_back(0x10);
+            v.push_back(0x00);
+        } else {
+            v.push_back(getTableValue(curStringChar));
+        }
+    }
+    v.push_back(0xFD);
+    return v;
 }
