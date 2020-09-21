@@ -2,9 +2,16 @@
 #include <iomanip> // setfill, setw
 #include <string.h> // strcmp
 #include <vector> // std::vector
-#include <assert.h>
-
+#include <assert.h> // assert()
 #include <fstream> // Better file reading
+
+// ASM cheat sheet
+// https://github.com/oowekyala/arm-cheatsheet/blob/master/arm-cheatsheet.pdf
+// String notes:
+// - 253/0xFD is a null terminator, it signals the end of the string
+// - 0xFE/254 is the start of a line. It can follow with two things:
+//   - 0x10/16 0x00/0 for a new line
+//   - 0x00/0  0x00/0 for not a new line, usually only at the start
 
 // Constants
 const int FILE_HEADER_OFFSET = 160; // 0x000000A0 = 160
@@ -45,12 +52,6 @@ int main(int argc, char const *argv[])
     // This covers every single level name
     //cout << decodeTextAddrs(LEVEL_TEXT_START,2010) << endl;
     printLines(LEVEL_TEXT_START,2050);
-    // Is 253 a null terminator?
-    // Is 254-0-0 a start identifier? (FE-00-00)
-    // In between all of the level names are 253-254-0-0
-    // But the very first message is just 254-0-0
-    // The very last one ends with 254-32-0
-    // 254/0xFE also is the first at a newline, then 16/0x10 then 0/0x00
     
     return 0;
 }
