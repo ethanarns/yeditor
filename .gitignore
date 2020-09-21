@@ -1,3 +1,5 @@
 .vscode/
 *.gba
 output/
+output.txt
+*.sav

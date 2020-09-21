@@ -2,6 +2,7 @@
 #include <iomanip> // setfill, setw
 #include <string.h> // strcmp
 #include <vector> // std::vector
+#include <assert.h>
 
 #include <fstream> // Better file reading
 
@@ -10,7 +11,7 @@ const int FILE_HEADER_OFFSET = 160; // 0x000000A0 = 160
 const char FILE_HEADER[] = "SUPER MARIOCA3"; // Hex at location converts to ASCII
 const unsigned int CHAR_MAX = 256;
 const char TABLE_FILE[] = "sma3char.tbl";
-const unsigned int LEVEL_TEXT_START = 0x2F90AC;
+const unsigned int LEVEL_TEXT_START = 0x2F90AC; // Welcome to Yoshis Island
 
 // Globals
 std::vector<unsigned char> dataChars;
@@ -20,9 +21,9 @@ unsigned char lTable[CHAR_MAX];
 void open(const char* fileName);
 std::string toHexString(unsigned int address, unsigned int padding);
 void printLines(unsigned int start, unsigned int lines);
-void printAllLines();
 void loadTable();
 std::string getCharacter(unsigned int x);
+std::string decodeTextAddrs(unsigned int start, unsigned int lines);
 
 // Main
 int main(int argc, char const *argv[])
@@ -35,13 +36,15 @@ int main(int argc, char const *argv[])
     }
     open(argv[1]);
     loadTable();
-    printLines(3117228,30);
+    cout << decodeTextAddrs(LEVEL_TEXT_START,800) << endl;
     
     return 0;
 }
 
+// Debugging
 void printLines(unsigned int start, unsigned int lines) {
     using namespace std;
+
     unsigned int end = start + lines;
     if (end > dataChars.size()) {
         end = dataChars.size();
@@ -53,8 +56,20 @@ void printLines(unsigned int start, unsigned int lines) {
         cout << ss.str() << endl;
     }
 }
-void printAllLines() {
-    printLines(0,dataChars.size());
+
+std::string decodeTextAddrs(unsigned int start, unsigned int lines) {
+    using namespace std;
+
+    unsigned int end = start + lines;
+    stringstream ss;
+    if (end > dataChars.size()) {
+        end = dataChars.size();
+    }
+    for (unsigned int i = start; i < end; i++) {
+        unsigned char c = dataChars.at(i);
+        ss << getCharacter((unsigned int)c);
+    }
+    return ss.str();
 }
 
 // Fills the char array dataChars with data from fileName
@@ -92,6 +107,7 @@ void loadTable() {
         getline(tableFile, str);
         lTable[i] = str.c_str()[0];
     }
+    assert(lTable[177] == 'H');
     tableFile.close();
 }
 
