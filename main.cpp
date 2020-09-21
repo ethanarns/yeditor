@@ -25,6 +25,12 @@ void loadTable();
 std::string getCharacter(unsigned int x);
 std::string decodeTextAddrs(unsigned int start, unsigned int lines);
 
+struct ylevel {
+    const unsigned int address;
+    char text[40];
+    unsigned int max_chars;
+};
+
 // Main
 int main(int argc, char const *argv[])
 {
@@ -36,7 +42,15 @@ int main(int argc, char const *argv[])
     }
     open(argv[1]);
     loadTable();
-    cout << decodeTextAddrs(LEVEL_TEXT_START,800) << endl;
+    // This covers every single level name
+    //cout << decodeTextAddrs(LEVEL_TEXT_START,2010) << endl;
+    printLines(LEVEL_TEXT_START,2050);
+    // Is 253 a null terminator?
+    // Is 254-0-0 a start identifier? (FE-00-00)
+    // In between all of the level names are 253-254-0-0
+    // But the very first message is just 254-0-0
+    // The very last one ends with 254-32-0
+    // 254/0xFE also is the first at a newline, then 16/0x10 then 0/0x00
     
     return 0;
 }
@@ -74,6 +88,7 @@ std::string decodeTextAddrs(unsigned int start, unsigned int lines) {
 
 // Fills the char array dataChars with data from fileName
 void open(const char* fileName) {
+    //TODO: Use fstream instead
     std::cout << fileName << std::endl;
     FILE* f = fopen(fileName,"rb");
     int i = 0;
