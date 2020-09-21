@@ -1,22 +1,20 @@
-#include <iostream> // cout, endl
-#include <fstream>
-#include <string>
-#include <sstream> // string builder
-#include <iomanip>
+#include <iostream> // cout, endl, hex, uppercase
+#include <iomanip> // setfill, setw
 #include <string.h> // strcmp
+#include <vector> // std::vector
 
 // Constants
-const int FILE_HEADER_LENGTH = 15;
 const int FILE_HEADER_OFFSET = 160; // 0x000000A0 = 160
 const char FILE_HEADER[] = "SUPER MARIOCA3"; // Hex at location converts to ASCII
 
 // Globals
-std::fstream fROM;
-char* dataR;
+std::vector<unsigned char> dataChars;
 
 // Functions
-void open(const char fileName[]);
-std::string toHexString(unsigned int address);
+void open(const char* fileName);
+std::string toHexString(unsigned int address, unsigned int padding);
+void printLines(unsigned int start, unsigned int lines);
+void printAllLines();
 
 // Main
 int main(int argc, char const *argv[])
@@ -28,43 +26,48 @@ int main(int argc, char const *argv[])
         return 1;
     }
     open(argv[1]);
-    cout << toHexString(160) << endl;
+    printAllLines();
     
     return 0;
 }
 
-void open(const char fileName[]) {
-    std::cout << fileName << std::endl;
-    fROM.open(fileName, std::ios::ate | std::ios::binary | std::ios::in | std::ios::out);
-    if (fROM.fail()) {
-        std::cout << "Failed to open file" << std::endl;
-        fROM.close(); // Close the stream
-        fROM.clear(); // Reset the error state
-        return;
-    } else {
-        char buffer[FILE_HEADER_LENGTH];
-        buffer[FILE_HEADER_LENGTH-1] = 0; // Add terminator/NUL
-
-        fROM.seekg(FILE_HEADER_OFFSET); // Move the read head to 0x000000A0
-        fROM.read(buffer,FILE_HEADER_LENGTH-1);
-        if (strcmp(buffer,FILE_HEADER) == 0) {
-            // Header was found, get file length
-            fROM.seekg(0,std::ios::end); // Read to end
-            unsigned int fsz = fROM.tellg(); // Get current read position
-            dataR = new char[fsz]; // Initiate the data variable with full length
-            fROM.read(dataR, fsz); // Read the entire file into the data variable
-            std::cout << "Opened successfully" << std::endl;
-        } else {
-            std::cout << "Header '" << FILE_HEADER << "' not present, found at location: " << buffer << std::endl;
-            fROM.close(); // No need for clear since not an error
-            return;
-        }
+void printLines(unsigned int start, unsigned int lines) {
+    using namespace std;
+    for (unsigned int i = start; i < lines; i++) {
+        stringstream ss;
+        unsigned char c = dataChars.at(i);
+        ss << toHexString(i,8) << ": " << toHexString((unsigned int)c,2);
+        cout << ss.str() << endl;
     }
 }
+void printAllLines() {
+    printLines(0,dataChars.size());
+}
 
-std::string toHexString(unsigned int address) {
+// Fills the char array dataChars with data from fileName
+void open(const char* fileName) {
+    std::cout << fileName << std::endl;
+    FILE* f = fopen(fileName,"rb");
+    int i = 0;
+    // While it is not the end of the file...
+    while (!feof(f)) {
+        i++;
+        unsigned char c;
+        // Read data into char c
+        // 1 element of 1 byte from file "f"
+        // Zero return means error, so break
+        if(fread(&c, 1, 1, f) == 0) {
+            std::cout << "Error reading at line " << i << std::endl;
+            break;
+        }
+        dataChars.push_back(c);
+    }
+    fclose(f);
+}
+
+std::string toHexString(unsigned int address, unsigned int padding) {
     using namespace std;
     stringstream ss;
-    ss << "0x" << uppercase << setfill('0') << setw(8) << hex << address;
+    ss << "0x" << uppercase << setfill('0') << setw(padding) << hex << address;
     return ss.str();
 }
