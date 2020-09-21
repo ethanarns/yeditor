@@ -3,18 +3,26 @@
 #include <string.h> // strcmp
 #include <vector> // std::vector
 
+#include <fstream> // Better file reading
+
 // Constants
 const int FILE_HEADER_OFFSET = 160; // 0x000000A0 = 160
 const char FILE_HEADER[] = "SUPER MARIOCA3"; // Hex at location converts to ASCII
+const unsigned int CHAR_MAX = 256;
+const char TABLE_FILE[] = "sma3char.tbl";
+const unsigned int LEVEL_TEXT_START = 0x2F90AC;
 
 // Globals
 std::vector<unsigned char> dataChars;
+unsigned char lTable[CHAR_MAX];
 
 // Functions
 void open(const char* fileName);
 std::string toHexString(unsigned int address, unsigned int padding);
 void printLines(unsigned int start, unsigned int lines);
 void printAllLines();
+void loadTable();
+std::string getCharacter(unsigned int x);
 
 // Main
 int main(int argc, char const *argv[])
@@ -26,7 +34,8 @@ int main(int argc, char const *argv[])
         return 1;
     }
     open(argv[1]);
-    printLines(4194300,4);
+    loadTable();
+    printLines(3117228,30);
     
     return 0;
 }
@@ -40,7 +49,7 @@ void printLines(unsigned int start, unsigned int lines) {
     for (unsigned int i = start; i < end; i++) {
         stringstream ss;
         unsigned char c = dataChars.at(i);
-        ss << toHexString(i,8) << ": " << toHexString((unsigned int)c,2);
+        ss << toHexString(i,8) << ": " << toHexString((unsigned int)c,2) << " (" << (unsigned int)c << ") <= " << getCharacter((unsigned int)c);
         cout << ss.str() << endl;
     }
 }
@@ -72,5 +81,23 @@ std::string toHexString(unsigned int address, unsigned int padding) {
     using namespace std;
     stringstream ss;
     ss << "0x" << uppercase << setfill('0') << setw(padding) << hex << address;
+    return ss.str();
+}
+
+void loadTable() {
+    using namespace std;
+    fstream tableFile(TABLE_FILE);
+    for (unsigned int i = 0; i < CHAR_MAX; i++) {
+        string str;
+        getline(tableFile, str);
+        lTable[i] = str.c_str()[0];
+    }
+    tableFile.close();
+}
+
+std::string getCharacter(unsigned int x) {
+    using namespace std;
+    stringstream ss;
+    ss << lTable[x];
     return ss.str();
 }
