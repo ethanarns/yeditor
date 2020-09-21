@@ -19,6 +19,7 @@ const char FILE_HEADER[] = "SUPER MARIOCA3"; // Hex at location converts to ASCI
 const unsigned int CHAR_MAX = 256;
 const char TABLE_FILE[] = "sma3char.tbl";
 const unsigned int LEVEL_TEXT_START = 0x2F90AC; // Welcome to Yoshis Island
+const char OUTPUT_FILE[] = "sma3yi_out.gba";
 
 // Globals
 std::vector<unsigned char> dataChars;
@@ -33,6 +34,7 @@ std::string getCharacter(unsigned int x);
 std::string decodeTextAddrs(unsigned int start, unsigned int lines);
 std::vector<unsigned char> generateChars(std::string textString);
 unsigned char getTableValue(unsigned char c);
+void writeToFile(unsigned int startAddr, std::vector<unsigned char> ch);
 
 struct ylevel {
     const unsigned int address;
@@ -55,12 +57,13 @@ int main(int argc, char const *argv[])
     //cout << decodeTextAddrs(LEVEL_TEXT_START,2010) << endl;
     //printLines(LEVEL_TEXT_START,2050);
 
-    auto v = generateChars("Welcome To\nYoshi's Island");
-    stringstream ss;
-    for (auto it = begin(v); it != end(v); ++it) {
-        cout << "0x" << hex << (unsigned int)(*it) << " ";
-    }
-    printLines(LEVEL_TEXT_START, 20);
+    vector<unsigned char> v = generateChars("Welcome To\nBepis's Island");
+    writeToFile(LEVEL_TEXT_START,v);
+    // stringstream ss;
+    // for (auto it = begin(v); it != end(v); ++it) {
+    //     cout << "0x" << hex << (unsigned int)(*it) << " ";
+    // }
+    // printLines(LEVEL_TEXT_START, 20);
 
     return 0;
 }
@@ -171,4 +174,14 @@ std::vector<unsigned char> generateChars(std::string textString) {
     }
     v.push_back(0xFD);
     return v;
+}
+
+void writeToFile(unsigned int startAddr, std::vector<unsigned char> ch) {
+    using namespace std;
+
+    fstream writeFile("sma3yi.gba", ios::binary | ios::in | ios::out);
+    writeFile.seekp(startAddr);
+    const char* outArray = (char*)ch.data();
+    writeFile.write(outArray,ch.size());
+    writeFile.close();
 }
