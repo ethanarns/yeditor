@@ -21,6 +21,9 @@ const char TABLE_FILE[] = "sma3char.tbl";
 const unsigned int LEVEL_TEXT_START = 0x2F90AC; // Welcome to Yoshis Island
 const char GBA_FILE[] = "sma3yi.gba";
 const unsigned int MAX_NEWLINES_TITLE = 1;
+const std::vector<unsigned char> TEXT_START = {0xFE, 0x0, 0x0};
+const unsigned int MAX_LEVEL_TEXT = 30;
+const int TEXT_TERMINATOR = {0xFD};
 
 // Globals
 std::vector<unsigned char> dataChars;
@@ -58,9 +61,9 @@ int main(int argc, char const *argv[])
     //cout << decodeTextAddrs(LEVEL_TEXT_START,2010) << endl;
     //printLines(LEVEL_TEXT_START,2050);
 
-    vector<unsigned char> v = generateChars("Haha this\nsays pingas");
+    vector<unsigned char> v = generateChars("Welcome to\nPingas Island");
     writeToFile(LEVEL_TEXT_START,v);
-
+    printf("Completed");
     return 0;
 }
 
@@ -156,7 +159,7 @@ unsigned char getTableValue(unsigned char c) {
 
 std::vector<unsigned char> generateChars(std::string textString) {
     using namespace std;
-    vector<unsigned char> v = {0xFE, 0x0, 0x0};
+    vector<unsigned char> v = TEXT_START;
     const char* cstr = textString.c_str();
     for (unsigned int i = 0; i < textString.size(); i++) {
         char curStringChar = cstr[i];
@@ -168,7 +171,7 @@ std::vector<unsigned char> generateChars(std::string textString) {
             v.push_back(getTableValue(curStringChar));
         }
     }
-    v.push_back(0xFD);
+    v.push_back(TEXT_TERMINATOR);
     return v;
 }
 
